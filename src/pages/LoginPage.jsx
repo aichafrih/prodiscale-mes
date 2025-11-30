@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUserData } = useAuth(); // ✅ Récupérer setUserData
+  const { setUserData } = useAuth();
   
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
@@ -24,22 +24,17 @@ export default function Login() {
         motDePasse 
       });
       
-      console.log('Utilisateur connecté:', res.data);
+      console.log('🔍 Réponse backend complète:', res.data);
+      console.log('🔍 Token reçu:', res.data.token);
 
-      // ✅ Créer l'objet utilisateur depuis la réponse API
-      const userData = {
-        name: res.data.user.name,
-        email: res.data.user.email,
-        role: res.data.user.role
-      };
-      
       // ✅ Stocker le token
       localStorage.setItem('token', res.data.token);
       
-      // ✅ Utiliser setUserData pour mettre à jour le contexte ET localStorage
-      setUserData(userData);
+      // ✅ Envoyer le token à setUserData (qui va le décoder)
+      setUserData(res.data.token);
 
-      console.log("✅ Connexion réussie - Navigation vers /");
+      console.log('✅ setUserData appelé avec le token');
+      console.log('✅ Connexion réussie - Navigation vers /');
       
       // Redirection vers le dashboard
       navigate('/');

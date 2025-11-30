@@ -13,6 +13,7 @@ import RegisterPage from "./pages/RegisterPage";
 import EquipementsPage from "./pages/EquipementsPage";
 import MatériauxPage from "./pages/MatériauxPage";
 import OperateurPage from "./pages/OperateurPage";
+import EtapeDetailPage from "./pages/EtapeDetailPage";
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/processus" element={<ProcessusPage />} />
+                        <Route path="processus/:processusId/etapes/:etapeId" element={<EtapeDetailPage />} />
                         <Route path="/ressources" element={<RessourcesPage />} />
                         <Route path="/planification" element={<PlanificationPage />} />
                         <Route path="/equipements" element={<EquipementsPage />} />*

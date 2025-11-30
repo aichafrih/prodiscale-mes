@@ -1,5 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
@@ -7,35 +8,44 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem("mes_user");
-    if (raw) setUser(JSON.parse(raw));
+    // ✅ Charger le token et le décoder
+    const token = localStorage.getItem("token");
+    console.log('🔍 AUTHCONTEXT - Token au chargement:', token);
+    
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        console.log('🔍 AUTHCONTEXT - Token décodé au chargement:', decoded);
+        setUser(decoded);
+      } catch (err) {
+        console.error("❌ Token invalide:", err);
+        localStorage.removeItem("token");
+      }
+    }
   }, []);
 
-  // ✅ Fonction pour mettre à jour l'utilisateur
-  function setUserData(userData) {
-    setUser(userData);
-    localStorage.setItem("mes_user", JSON.stringify(userData));
-  }
-
-  function login(username, password) {
-    if (username === "planificateur" && password === "password") {
-      const u = { name: "Planificateur", role: "planificateur" };
-      setUser(u);
-      localStorage.setItem("mes_user", JSON.stringify(u));
-      return { ok: true };
+  // ✅ Fonction pour décoder le token et mettre à jour l'utilisateur
+  function setUserData(token) {
+    console.log('🔍 AUTHCONTEXT setUserData - Token reçu:', token);
+    try {
+      const decoded = jwtDecode(token);
+      console.log('🔍 AUTHCONTEXT setUserData - Token décodé:', decoded);
+      setUser(decoded);
+      localStorage.setItem("token", token);
+      console.log('✅ User state mis à jour avec:', decoded);
+    } catch (err) {
+      console.error("❌ Erreur décodage token:", err);
     }
-    return { ok: false, message: "Identifiants invalides" };
   }
 
   function logout() {
     setUser(null);
-    localStorage.removeItem("mes_user");
     localStorage.removeItem("token");
-    console.log("✅ Déconnexion réussie - Token et utilisateur supprimés");
+    console.log("✅ Déconnexion réussie");
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, setUserData }}>
+    <AuthContext.Provider value={{ user, logout, setUserData }}>
       {children}
     </AuthContext.Provider>
   );
