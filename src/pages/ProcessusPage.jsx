@@ -5,14 +5,14 @@ import {
   Save, ArrowLeft, ArrowRight, Users, Wrench, Package, Layers 
 } from 'lucide-react';
 
-
 import Swal from 'sweetalert2';
 
 export default function ProcessusPage() {
   const [processus, setProcessus] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [modalStep, setModalStep] = useState(1); // 1: Info de base, 2: Ajout étapes
+  const [showEtapesModal, setShowEtapesModal] = useState(false); // ✅ AJOUTÉ
+  const [modalStep, setModalStep] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
   const [editingId, setEditingId] = useState(null);
   
@@ -30,7 +30,8 @@ export default function ProcessusPage() {
   const API_URL = 'http://localhost:5000/api/processus';
 
   useEffect(() => {
-    fetchProcessus(); }, []);
+    fetchProcessus();
+  }, []);
 
   const fetchProcessus = async () => {
     setLoading(true);
@@ -76,6 +77,13 @@ export default function ProcessusPage() {
     }
   };
 
+  // ✅ NOUVELLE FONCTION: Ouvrir modal pour ajouter des étapes à un processus existant
+  const handleAddEtapes = (processusId) => {
+    setCurrentProcessusId(processusId);
+    setEtapesTemp([]);
+    setShowEtapesModal(true);
+  };
+
   // ÉTAPE 2: Ajouter les étapes au processus
   const handleSubmitEtapes = async () => {
     if (etapesTemp.length === 0) {
@@ -92,7 +100,14 @@ export default function ProcessusPage() {
       }
       Swal.fire('Succès !', 'Étapes ajoutées avec succès !', 'success');
       fetchProcessus();
-      setShowModal(false);
+      
+      // ✅ MODIFIÉ: Fermer le bon modal selon le contexte
+      if (showEtapesModal) {
+        setShowEtapesModal(false);
+      } else {
+        setShowModal(false);
+      }
+      
       resetForm();
     } catch (err) {
       Swal.fire('Erreur !', 'Impossible d\'ajouter les étapes', 'error');
@@ -239,6 +254,17 @@ export default function ProcessusPage() {
                     )}
                   </div>
                   <div className="flex gap-2">
+                    {/* ✅ NOUVEAU BOUTON: Ajouter des étapes */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddEtapes(p._id);
+                      }}
+                      className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition"
+                      title="Ajouter des étapes"
+                    >
+                      <Plus size={18} />
+                    </button>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -313,7 +339,7 @@ export default function ProcessusPage() {
         </div>
       )}
 
-      {/* Modal Multi-étapes */}
+      {/* Modal Multi-étapes (Création) */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -518,6 +544,121 @@ export default function ProcessusPage() {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ NOUVEAU MODAL: Ajouter des étapes à un processus existant */}
+      {showEtapesModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-gradient-to-r from-green-600 to-green-700 text-white p-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold">Ajouter des Étapes</h2>
+                  <p className="text-green-100 text-sm mt-1">Ajoutez de nouvelles étapes à ce processus</p>
+                </div>
+                <button
+                  onClick={() => setShowEtapesModal(false)}
+                  className="text-white hover:bg-green-800 p-2 rounded-lg transition"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold text-gray-800">Nouvelles étapes</h3>
+                  <button
+                    type="button"
+                    onClick={addEtapeTemp}
+                    className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+                  >
+                    <Plus size={18} />
+                    Ajouter une étape
+                  </button>
+                </div>
+
+                {etapesTemp.length === 0 ? (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                    
+                    <p className="text-gray-400 text-sm mt-1">Cliquez sur "Ajouter une étape" pour avoir nouvelle etape</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-96 overflow-y-auto">
+                    {etapesTemp.map((etape, idx) => (
+                      <div key={idx} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="bg-green-500 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                            {idx + 1}
+                          </span>
+                          <h4 className="font-semibold text-gray-700">Étape {idx + 1}</h4>
+                          <button
+                            type="button"
+                            onClick={() => removeEtapeTemp(idx)}
+                            className="ml-auto bg-red-500 text-white p-1 rounded hover:bg-red-600"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3">
+                          <input
+                            type="number"
+                            placeholder="N°"
+                            value={etape.numero}
+                            onChange={(e) => updateEtapeTemp(idx, 'numero', parseInt(e.target.value))}
+                            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Nom de l'étape *"
+                            value={etape.nom}
+                            onChange={(e) => updateEtapeTemp(idx, 'nom', e.target.value)}
+                            className="col-span-2 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                            required
+                          />
+                        </div>
+                        <textarea
+                          placeholder="Description (optionnelle)"
+                          value={etape.description}
+                          onChange={(e) => updateEtapeTemp(idx, 'description', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+                          rows="2"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Durée estimée (minutes)"
+                          value={etape.dureeEstimee}
+                          onChange={(e) => updateEtapeTemp(idx, 'dureeEstimee', parseInt(e.target.value) || 0)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm mt-3 focus:outline-none focus:ring-2 focus:ring-green-500"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowEtapesModal(false)}
+                    className="flex-1 bg-gray-300 text-gray-800 px-6 py-3 rounded-lg hover:bg-gray-400 transition font-semibold"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmitEtapes}
+                    disabled={loading}
+                    className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold disabled:bg-green-400 flex items-center justify-center gap-2"
+                  >
+                    {loading ? 'Enregistrement...' : 'Ajouter les étapes'}
+                    <Save size={18} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

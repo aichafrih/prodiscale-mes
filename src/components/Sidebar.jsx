@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Home, Layers, Calendar, Settings, LogOut, Package, ChevronDown, ChevronRight } from "lucide-react";
+import { Home, Layers, Calendar, Settings, LogOut, Wrench, Package, ChevronDown, ChevronRight, Users } from "lucide-react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -55,9 +55,9 @@ useEffect(() => {
   const links = [
     { to: "/", label: "Tableau de bord", icon: <Home size={18} /> },
    
-    { to: "/equipements", label: "Équipements", icon: <Layers size={18} /> },
+    { to: "/equipements", label: "Équipements", icon: <Wrench size={18} /> },
     { to: "/materiaux", label: "Matériaux", icon: <Package size={18} /> },
-    { to: "/operateurs", label: "Opérateurs", icon: <Package size={18} /> },
+    { to: "/operateurs", label: "Opérateurs", icon: <Users size={18} /> },
      { to: "/processus", label: "Processus", icon: <Layers size={18} /> },
 ];
 
