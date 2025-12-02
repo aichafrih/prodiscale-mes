@@ -88,46 +88,67 @@ export default function EtapeDetailPage() {
   };
 
   // === GESTION DES MATÉRIAUX ===
-const handleAddMateriau = async () => {
-  // 🔍 Debug
-  console.log('processusId:', processusId);
-  console.log('etapeId:', etapeId);
-  console.log('selectedMateriau:', selectedMateriau);
-  console.log('quantite:', quantite);
+  const handleAddMateriau = async () => {
+    // 🔍 Debug
+    console.log('processusId:', processusId);
+    console.log('etapeId:', etapeId);
+    console.log('selectedMateriau:', selectedMateriau);
+    console.log('quantite:', quantite);
 
-  if (!selectedMateriau || !quantite || quantite <= 0) {
-    Swal.fire('Attention', 'Sélectionnez un matériau et une quantité valide', 'warning');
-    return;
-  }
+    if (!selectedMateriau || !quantite || quantite <= 0) {
+      Swal.fire('Attention', 'Sélectionnez un matériau et une quantité valide', 'warning');
+      return;
+    }
 
-  setLoading(true);
-  try {
-    const url = `${API_URL}/${processusId}/etapes/${etapeId}/materiaux`;
-    console.log(' URL complète:', url);
-
-    const response = await axios.post(
-      url,
-      { 
-        materiauId: selectedMateriau, 
-        quantiteNecessaire: parseFloat(quantite) 
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    // ✅ VÉRIFICATION DU STOCK DISPONIBLE
+    const materiauSelectionne = materiauxDispo.find(m => m._id === selectedMateriau);
     
-    console.log(' Réponse:', response.data);
-    Swal.fire('Succès', 'Matériau ajouté', 'success');
-    fetchData();
-    setShowMateriauModal(false);
-    setSelectedMateriau('');
-    setQuantite(0);
-  } catch (err) {
-    console.error(' Erreur complète:', err);
-    console.error('URL tentée:', `${API_URL}/${processusId}/etapes/${etapeId}/materiaux`);
-    Swal.fire('Erreur', err.response?.data?.message || 'Impossible d\'ajouter le matériau', 'error');
-  } finally {
-    setLoading(false);
-  }
-};
+    if (!materiauSelectionne) {
+      Swal.fire('Erreur', 'Matériau introuvable', 'error');
+      return;
+    }
+
+    const stockDisponible = materiauSelectionne.quantiteStock || 0;
+    const quantiteDemandee = parseFloat(quantite);
+
+    if (quantiteDemandee > stockDisponible) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Stock insuffisant',
+        text: `Stock disponible : ${stockDisponible} ${materiauSelectionne.unite}. Quantité demandée : ${quantiteDemandee} ${materiauSelectionne.unite}`,
+        confirmButtonColor: '#dc2626'
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const url = `${API_URL}/${processusId}/etapes/${etapeId}/materiaux`;
+      console.log('🔗 URL complète:', url);
+
+      const response = await axios.post(
+        url,
+        { 
+          materiauId: selectedMateriau, 
+          quantiteNecessaire: quantiteDemandee
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      console.log('✅ Réponse:', response.data);
+      Swal.fire('Succès', 'Matériau ajouté', 'success');
+      fetchData();
+      setShowMateriauModal(false);
+      setSelectedMateriau('');
+      setQuantite(0);
+    } catch (err) {
+      console.error('❌ Erreur complète:', err);
+      console.error('URL tentée:', `${API_URL}/${processusId}/etapes/${etapeId}/materiaux`);
+      Swal.fire('Erreur', err.response?.data?.message || 'Impossible d\'ajouter le matériau', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRemoveMateriau = async (materiauId) => {
     Swal.fire({
@@ -537,21 +558,18 @@ const handleAddMateriau = async () => {
                 ))}
               </select>
 
-<input
-  type="number"
-  value={quantite}
-  onChange={(e) => {
-    const val = e.target.value;
-    setQuantite(val === '' ? 0 : parseFloat(val));
-  }}
-  placeholder="Quantité nécessaire"
-  className="w-full px-3 py-2 border rounded-lg"
-  min="0"
-  step="0.1"
-/>
-
-
-
+              <input
+                type="number"
+                value={quantite}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setQuantite(val === '' ? 0 : parseFloat(val));
+                }}
+                placeholder="Quantité nécessaire"
+                className="w-full px-3 py-2 border rounded-lg"
+                min="0"
+                step="0.1"
+              />
             </div>
             <div className="flex gap-3 mt-6">
               <button
