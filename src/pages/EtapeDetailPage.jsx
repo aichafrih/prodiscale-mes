@@ -79,9 +79,17 @@ export default function EtapeDetailPage() {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
+      
       setMateriauxDispo(matRes.data);
-      setOperateursDispo(opRes.data);
-      setEquipementsDispo(eqRes.data);
+      
+      // Filtrer uniquement les opérateurs actifs
+      const operateursActifs = opRes.data.filter(op => op.statut === 'actif');
+      setOperateursDispo(operateursActifs);
+      
+      // Filtrer uniquement les équipements disponibles
+      const equipementsDisponibles = eqRes.data.filter(eq => eq.statut === 'disponible');
+      setEquipementsDispo(equipementsDisponibles);
+      
     } catch (err) {
       console.error('Erreur chargement ressources:', err);
     }
@@ -598,26 +606,35 @@ export default function EtapeDetailPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-4">Ajouter des opérateurs</h3>
-            <div className="space-y-2">
-              {operateursDispo.map((op) => (
-                <label key={op._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedOperateurs.includes(op._id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedOperateurs([...selectedOperateurs, op._id]);
-                      } else {
-                        setSelectedOperateurs(selectedOperateurs.filter(id => id !== op._id));
-                      }
-                    }}
-                    className="w-4 h-4"
-                  />
-                  <span className="font-medium">{op.prenom} {op.nom}</span>
-                  <span className="text-xs text-gray-500">({op.matricule})</span>
-                </label>
-              ))}
-            </div>
+            {operateursDispo.length > 0 ? (
+              <div className="space-y-2">
+                {operateursDispo.map((op) => (
+                  <label key={op._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedOperateurs.includes(op._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedOperateurs([...selectedOperateurs, op._id]);
+                        } else {
+                          setSelectedOperateurs(selectedOperateurs.filter(id => id !== op._id));
+                        }
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span className="font-medium">{op.prenom} {op.nom}</span>
+                    <span className="text-xs text-gray-500">({op.matricule})</span>
+                    <span className="ml-auto text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      Actif
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-8 text-sm">
+                Aucun opérateur actif disponible pour le moment
+              </p>
+            )}
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => {
@@ -631,6 +648,7 @@ export default function EtapeDetailPage() {
               <button
                 onClick={handleAddOperateurs}
                 className="flex-1 bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600"
+                disabled={selectedOperateurs.length === 0}
               >
                 Ajouter ({selectedOperateurs.length})
               </button>
@@ -644,26 +662,35 @@ export default function EtapeDetailPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-4">Ajouter des équipements</h3>
-            <div className="space-y-2">
-              {equipementsDispo.map((eq) => (
-                <label key={eq._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedEquipements.includes(eq._id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedEquipements([...selectedEquipements, eq._id]);
-                      } else {
-                        setSelectedEquipements(selectedEquipements.filter(id => id !== eq._id));
-                      }
-                    }}
-                    className="w-4 h-4"
-                  />
-                  <span className="font-medium">{eq.nom}</span>
-                  <span className="text-xs text-gray-500">({eq.reference})</span>
-                </label>
-              ))}
-            </div>
+            {equipementsDispo.length > 0 ? (
+              <div className="space-y-2">
+                {equipementsDispo.map((eq) => (
+                  <label key={eq._id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedEquipements.includes(eq._id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedEquipements([...selectedEquipements, eq._id]);
+                        } else {
+                          setSelectedEquipements(selectedEquipements.filter(id => id !== eq._id));
+                        }
+                      }}
+                      className="w-4 h-4"
+                    />
+                    <span className="font-medium">{eq.nom}</span>
+                    <span className="text-xs text-gray-500">({eq.reference})</span>
+                    <span className="ml-auto text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                      Disponible
+                    </span>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-center py-8 text-sm">
+                Aucun équipement disponible pour le moment
+              </p>
+            )}
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => {
@@ -677,6 +704,7 @@ export default function EtapeDetailPage() {
               <button
                 onClick={handleAddEquipements}
                 className="flex-1 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                disabled={selectedEquipements.length === 0}
               >
                 Ajouter ({selectedEquipements.length})
               </button>
