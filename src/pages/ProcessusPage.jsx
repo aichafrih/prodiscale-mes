@@ -407,7 +407,7 @@ export default function ProcessusPage() {
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <label className="block text-gray-700 font-semibold mb-2">
-                        Nom du processus *
+                        Nom du processus 
                       </label>
                       <input
                         type="text"
