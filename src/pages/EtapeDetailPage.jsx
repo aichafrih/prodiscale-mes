@@ -89,7 +89,7 @@ export default function EtapeDetailPage() {
 
   // === GESTION DES MATÉRIAUX ===
   const handleAddMateriau = async () => {
-    // 🔍 Debug
+    //  Debug
     console.log('processusId:', processusId);
     console.log('etapeId:', etapeId);
     console.log('selectedMateriau:', selectedMateriau);
@@ -100,7 +100,7 @@ export default function EtapeDetailPage() {
       return;
     }
 
-    // ✅ VÉRIFICATION DU STOCK DISPONIBLE
+    //  VÉRIFICATION DU STOCK DISPONIBLE
     const materiauSelectionne = materiauxDispo.find(m => m._id === selectedMateriau);
     
     if (!materiauSelectionne) {
@@ -135,7 +135,7 @@ export default function EtapeDetailPage() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      console.log('✅ Réponse:', response.data);
+      console.log(' Réponse:', response.data);
       Swal.fire('Succès', 'Matériau ajouté', 'success');
       fetchData();
       setShowMateriauModal(false);
